@@ -54,3 +54,7 @@ Three images are built by the `./buildah.sh` script.
 `${created_by}/void-voidbuilder`:: A voidlinux image with $BASEPKG installed at /target
 `${created_by}/voidlinux`:: The final configured and stripped voidlinux image, suitable for running containers, or using as a base for other containers
 
+## Running the images
+
+These images are available to podman, and can be run with `podman run -it --rm ${created_by}/voidlinux` (will run the voidlinux
+container's default cmd: `/bin/sh`).
