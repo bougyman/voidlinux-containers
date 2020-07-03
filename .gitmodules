@@ -1,0 +1,3 @@
+[submodule "void-mklive"]
+	path = void-mklive
+	url = https://github.com/void-linux/void-mklive

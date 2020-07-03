@@ -1,0 +1,45 @@
+# Voidlinux container builders (buildahs)
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+:toc:
+
+This repository contains https://github.com/containers/buildah[`buildah`] scripts for building
+OCI compliant voidlinux containers.
+
+## Usage
+
+### Configuration
+
+All configuration is currently done through environment variables
+
+`author`:: The full 'MAINTAINER' value for image and container metadata
+`created_by`:: This becomes the prefix all images use, i.e. with 'created_by=foo', the images would be `foo/alpine-voidbuilder`, `foo/void-voidbuilder`, and `foo/voidlinux`
+`REPOSITORY`:: This is the url of the voidlinux repository to use (default: https://alpha.de.repo.voidlinux.org)
+`ARCH`:: The architecture to build (default: x86_64)
+`BASEPKG`:: The base package (or packages) to install in the final voidlinux container. (default: base-minimal)
+
+Export these variables before running the build scripts.
+
+IMPORTANT: You must have fuse-overlayfs working in order for the buildah scripts to work properly. (from within the unshare session, if using one)
+
+### Building
+
+The `./buildah.sh` script will build 3 images, similar to the voidlinux https://hub.docker.com/r/voidlinux/voidlinux/dockerfile[dockerfile].
+
+This script only needs to be when you want to rebuild the underlying base images (alpine-voidbuilder and void-voidbuilder).
+
+TIP: The build scripts use `buildah mount`, which may require you to run them in a `buildah unshare` session
+
+## Images
+
+Three images are built by the `./buildah.sh` script.
+
+`${created_by}/alpine-voidbuilder`:: A bare alpine image with void bootstrapped at /target
+`${created_by}/void-voidbuilder`:: A voidlinux image with $BASEPKG installed at /target
+`${created_by}/voidlinux`:: The final configured and stripped voidlinux image, suitable for running containers, or using as a base for other containers
+
