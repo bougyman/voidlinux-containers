@@ -29,3 +29,5 @@ buildah config --created-by "$created_by" "$voidbuild"
 buildah config --author "$author" --label name=void-voidbuilder "$voidbuild" 
 buildah unmount "$voidbuild"
 buildah commit "$voidbuild" "$created_by"/void-voidbuilder
+buildah rm "$voidbuild"
+buildah rm "$alpine"

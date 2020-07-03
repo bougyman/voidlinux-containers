@@ -29,11 +29,21 @@ IMPORTANT: You must have fuse-overlayfs working in order for the buildah scripts
 
 ### Building
 
+#### Build everything (First-Time build)
+
 The `./buildah.sh` script will build 3 images, similar to the voidlinux https://hub.docker.com/r/voidlinux/voidlinux/dockerfile[dockerfile].
 
 This script only needs to be when you want to rebuild the underlying base images (alpine-voidbuilder and void-voidbuilder).
 
 TIP: The build scripts use `buildah mount`, which may require you to run them in a `buildah unshare` session
+
+#### Build individual images
+
+You can build just the layer you want to refresh with the individual scripts
+
+`./buildah-alpine-builder.sh`:: Builds the `${created_by}/alpine-voidbuilder` image
+`./buildah-void-builder.sh`:: Builds the `${created_by}/void-voidbuilder` image
+`./buildah-voidlinux.sh`:: Builds the `${created_by}/voidlinux` image
 
 ## Images
 

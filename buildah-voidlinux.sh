@@ -13,9 +13,12 @@ voidbuild_mount=$(buildah mount "$voidbuild")
 
 # Build the final voidlinux container
 void=$(buildah from scratch)
-buildah mount "$void"
+buildah mount "$void" >/dev/null
+
+# Perhaps rsync here with a lot of excluded files instead of using buildah copy?
 buildah copy "$void" "$voidbuild_mount"/target /
-# Here's where any cleanup can happen
+
+# Here's where the current cleanup happens
 buildah run "$void" -- sh -c "rm /var/cache/xbps && \
                               sed -i 's/^#en_US/en_US/' /etc/default/libc-locales && \
                               xbps-reconfigure -f glibc-locales && \
@@ -33,7 +36,7 @@ buildah run "$void" -- sh -c "rm /var/cache/xbps && \
                               xbps-install -Sy mawk && \
                               rm -vfr /var/cache/xbps"
 
-buildah unmount "$voidbuild"
+buildah unmount "$voidbuild" >/dev/null
 
 # Commit voidlinux
 buildah config --cmd /bin/sh "$void" 
@@ -41,3 +44,7 @@ buildah config --created-by "$created_by" "$void"
 buildah config --author "$author" --label name=voidlinux "$void" 
 buildah unmount "$void"
 buildah commit "$void" "$created_by"/voidlinux
+
+# Clean up build containers
+buildah rm "$voidbuild"
+buildah rm "$void"
