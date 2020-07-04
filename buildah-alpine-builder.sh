@@ -9,7 +9,12 @@
 
 # Build a builder from alpine
 alpine=$(buildah from alpine:3.12)
-alpine_mount=$(buildah mount "$alpine")
+if ! alpine_mount=$(buildah mount "$alpine")
+then
+    echo "Could not mount alpine! Bailing" >&2
+    exit 1
+fi
+
 buildah copy "$alpine" void-mklive/keys/* /target/var/db/xbps/keys/
 buildah run "$alpine" -- apk add ca-certificates curl
 curl "${REPOSITORY}/static/xbps-static-latest.$(uname -m)-musl.tar.xz" | tar Jx -C "$alpine_mount"

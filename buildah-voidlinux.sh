@@ -9,7 +9,12 @@
 
 # Import the void-based builder
 voidbuild=$(buildah from "$created_by"/void-voidbuilder)
-voidbuild_mount=$(buildah mount "$voidbuild")
+trap 'buildah rm $voidbuild; [ -z "$void" ] || buildah rm $void' EXIT
+if ! voidbuild_mount=$(buildah mount "$voidbuild")
+then
+    echo "Could not mount void-voidbuilder! Bailing" >&2
+    exit 1
+fi
 
 # Build the final voidlinux container
 void=$(buildah from scratch)
@@ -44,7 +49,3 @@ buildah config --created-by "$created_by" "$void"
 buildah config --author "$author" --label name=voidlinux "$void" 
 buildah unmount "$void"
 buildah commit "$void" "$created_by"/voidlinux
-
-# Clean up build containers
-buildah rm "$voidbuild"
-buildah rm "$void"

@@ -7,10 +7,14 @@
 : "${ARCH:=x86_64}"
 : "${BASEPKG:=base-minimal}"
 
-
 # Import alpine base builder
 alpine=$(buildah from "$created_by"/alpine-voidbuilder)
-alpine_mount=$(buildah mount "$alpine")
+trap 'buildah rm $alpine; [ -z "$voidlinux" ] || buildah rm $voidlinux' EXIT
+if ! alpine_mount=$(buildah mount "$alpine")
+then
+    echo "Could not mount alpine! Bailing (see error above, you probably need to run in a 'buildah unshare' session)" >&2
+    exit 1
+fi
 
 # Build a void-based builder
 voidbuild=$(buildah from scratch)
@@ -29,5 +33,3 @@ buildah config --created-by "$created_by" "$voidbuild"
 buildah config --author "$author" --label name=void-voidbuilder "$voidbuild" 
 buildah unmount "$voidbuild"
 buildah commit "$voidbuild" "$created_by"/void-voidbuilder
-buildah rm "$voidbuild"
-buildah rm "$alpine"

@@ -8,7 +8,7 @@
 : "${BASEPKG:=base-minimal}"
 export author created_by REPOSITORY ARCH BASEPKG
 
-./buildah-alpine-builder.sh
-./buildah-void-builder.sh
+./buildah-alpine-builder.sh && \
+./buildah-void-builder.sh && \
 ./buildah-voidlinux.sh
 
