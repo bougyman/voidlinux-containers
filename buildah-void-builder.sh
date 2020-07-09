@@ -9,7 +9,7 @@
 
 # Import alpine base builder
 alpine=$(buildah from "$created_by"/alpine-voidbuilder)
-trap 'buildah rm $alpine; [ -z "$voidlinux" ] || buildah rm $voidlinux' EXIT
+trap 'buildah rm "$alpine"; [ -z "$voidbuild" ] || buildah rm "$voidbuild"' EXIT
 if ! alpine_mount=$(buildah mount "$alpine")
 then
     echo "Could not mount alpine! Bailing (see error above, you probably need to run in a 'buildah unshare' session)" >&2
@@ -21,12 +21,13 @@ voidbuild=$(buildah from scratch)
 buildah mount "$voidbuild"
 buildah copy "$voidbuild" "$alpine_mount"/target /
 buildah copy "$voidbuild" void-mklive/keys/* /target/var/db/xbps/keys/
-buildah run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache && ln -s /var/cache/xbps /target/var/cache/xbps && \
+buildah run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache && \
+                                  ln -s /var/cache/xbps /target/var/cache/xbps && \
                                   XBPS_ARCH=${ARCH} xbps-install -yMU \
-                                  --repository=${REPOSITORY}/current \
-                                  --repository=${REPOSITORY}/current/musl \
-                                  -r /target \
-                                  ${BASEPKG} ca-certificates"
+                                    --repository=${REPOSITORY}/current \
+                                    --repository=${REPOSITORY}/current/musl \
+                                    -r /target \
+                                    ${BASEPKG} ca-certificates"
 
 # Commit void-voidbuilder
 buildah config --created-by "$created_by" "$voidbuild" 
