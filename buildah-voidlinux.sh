@@ -42,7 +42,8 @@ glibc_tags="^(latest|locales|default)$"
 if [[ "${tag}" =~  $glibc_tags ]]
 then
     # Retains only en_US, C, and POSIX glibc-locale files/functionality
-    buildah run "$void" -- sh -c "sed -i 's/^#en_US/en_US/' /etc/default/libc-locales && \
+    buildah run "$void" -- sh -c "xbps-install glibc-locales && \
+                                  sed -i 's/^#en_US/en_US/' /etc/default/libc-locales && \
                                   xbps-reconfigure -f glibc-locales && \
                                   ls -d /usr/share/locale/* | egrep -v 'en_US|locale.alias|C|POSIX' | xargs rm -rf && \
                                   ls /usr/share/i18n/locales/* | egrep -v 'en_US|locale.alias|C|POSIX' | xargs rm -f && \

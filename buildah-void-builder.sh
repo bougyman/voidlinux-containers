@@ -23,11 +23,20 @@ buildah copy "$voidbuild" "$alpine_mount"/target /
 buildah copy "$voidbuild" void-mklive/keys/* /target/var/db/xbps/keys/
 buildah run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache && \
                                   ln -s /var/cache/xbps /target/var/cache/xbps && \
+                                  mkdir -p /target/etc/xbps.d
+                                  echo 'noextract=/usr/share/man*' >> /target/etc/xbps.d/noextract.conf && \
+                                  echo 'noextract=/usr/share/info*' >> /target/etc/xbps.d/noextract.conf && \
                                   XBPS_ARCH=${ARCH} xbps-install -yMU \
                                     --repository=${REPOSITORY}/current \
                                     --repository=${REPOSITORY}/current/musl \
                                     -r /target \
-                                    ${BASEPKG} ca-certificates"
+                                    ${BASEPKG} ca-certificates && \
+                                  XBPS_ARCH=${ARCH} xbps-remove -y base-minimal -r /target && rm -rvf /var/xbps/cache/*"
+set -e
+for exclude in $(<excludes)
+do
+    buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y ${exclude} -r /target "
+done
 
 # Commit void-voidbuilder
 buildah config --created-by "$created_by" "$voidbuild" 

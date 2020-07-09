@@ -1,0 +1,13 @@
+util-linux
+util-linux-libs
+eudev-libudev
+runit-void
+gawk
+libfdisk
+libmount
+shadow
+pam
+pam-base
+pam-libs
+nvi
+libdb
