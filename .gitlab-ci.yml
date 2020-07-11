@@ -1,4 +1,4 @@
-image: "voidlinux/voidlinux"
+image: "fedora:latest"
 
 build_x86_64:
   script:
