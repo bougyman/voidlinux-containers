@@ -14,5 +14,8 @@ echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-s
 
 ./buildah.sh
 image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from ${image_name})
-buildah commit --squash $CONTAINER_ID $FQ_IMAGE_NAME
+CONTAINER_ID=$(buildah from "${image_name}")
+set -x
+buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME"
+
+# vim: set foldmethod=marker et ts=4 sts=4 sw=4 :
