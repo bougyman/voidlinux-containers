@@ -15,6 +15,7 @@ echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-s
 ./buildah.sh
 image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
+echo "Pushing to $FQ_IMAGE_NAME"
 set -x
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME"
 
