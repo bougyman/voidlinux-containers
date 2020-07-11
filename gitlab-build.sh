@@ -11,6 +11,5 @@ export STORAGE_DRIVER=vfs # Use vfs because overlay on overlay in Docker is whac
 
 export REGISTRY_AUTH_FILE=${HOME}/auth.json # Set registry file location
 echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" # Login to registry
-xbps-install -y buildah bash
 
 ./buildah.sh
