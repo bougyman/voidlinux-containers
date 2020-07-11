@@ -64,7 +64,7 @@ optparse() { # {{{
                 exit
                 ;;
             \?)
-                echo "Invalid option '${opt}'" >&2
+                echo "Invalid option '${OPTARG}'" >&2
                 usage >&2
                 exit 27
                 ;;
@@ -76,7 +76,7 @@ optparse() { # {{{
         esac
     done # }}}
     shift $((OPTIND-1))
-    : "${tag:=${ARCH}-latest}"
+    : "${tag:=${ARCH}_latest}"
 } # }}}
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :
 

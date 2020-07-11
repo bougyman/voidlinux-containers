@@ -1,5 +1,5 @@
 #!/bin/bash
-# This builds all 3 images
+# This builds all 3 images. See Readme.adoc for details
 
 # Brings in optparse(), die(), and bud()
 # shellcheck source=lib/functions.sh

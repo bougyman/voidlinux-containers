@@ -26,7 +26,7 @@ All configuration can be done through environment variables
 
 Export these variables before running the build scripts.
 
-Alternately, you can use the -a ARCH, -t TAG options to the scripts to set those two variables.
+Alternately, you can use the -a ARCH, -t TAG, -b BASEPKG options to the scripts to set those three variables.
 
 IMPORTANT: You must have fuse-overlayfs working in order for the buildah scripts to work properly (from within the unshare session, if using one)
 
