@@ -2,4 +2,5 @@ image: "fedora:latest"
 
 build_x86_64:
   script:
-    - echo "Hello!"
+    - dnf install -y buildah
+    - ./build.sh
