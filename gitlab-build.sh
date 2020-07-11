@@ -13,3 +13,6 @@ export REGISTRY_AUTH_FILE=${HOME}/auth.json # Set registry file location
 echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" # Login to registry
 
 ./buildah.sh
+image_name="${created_by}/voidlinux:${tag}"
+CONTAINER_ID=$(buildah from ${image_name})
+buildah commit --squash $CONTAINER_ID $FQ_IMAGE_NAME
