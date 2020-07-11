@@ -11,3 +11,6 @@ pam-base
 pam-libs
 nvi
 libdb
+glibc-locales
+libblkid
+libreadline8

@@ -15,17 +15,20 @@ OCI compliant voidlinux containers.
 
 ### Configuration
 
-All configuration is currently done through environment variables
+All configuration can be done through environment variables
 
 `author`:: The full 'MAINTAINER' value for image and container metadata
 `created_by`:: This becomes the prefix all images use, i.e. with 'created_by=foo', the images would be `foo/alpine-voidbuilder`, `foo/void-voidbuilder`, and `foo/voidlinux`
 `REPOSITORY`:: This is the url of the voidlinux repository to use (default: https://alpha.de.repo.voidlinux.org)
-`ARCH`:: The architecture to build (default: x86_64)
+`ARCH`:: The architecture to build (default: x86_64). See build.voidlinux.org for available arches.
 `BASEPKG`:: The base package (or packages) to install in the final voidlinux container. (default: base-minimal)
+`tag`:: The tag to give this image (Default: `${ARCH}-latest`
 
 Export these variables before running the build scripts.
 
-IMPORTANT: You must have fuse-overlayfs working in order for the buildah scripts to work properly. (from within the unshare session, if using one)
+Alternately, you can use the -a ARCH, -t TAG options to the scripts to set those two variables.
+
+IMPORTANT: You must have fuse-overlayfs working in order for the buildah scripts to work properly (from within the unshare session, if using one)
 
 ### Building
 
@@ -42,9 +45,9 @@ TIP: The build scripts use `buildah mount`, which may require you to run them in
 
 You can build just the layer you want to refresh with the individual scripts
 
-`./buildah-alpine-builder.sh`:: Builds the `${created_by}/alpine-voidbuilder` image
-`./buildah-void-builder.sh`:: Builds the `${created_by}/void-voidbuilder` image
-`./buildah-voidlinux.sh`:: Builds the `${created_by}/voidlinux` image
+`./alpine-builder.sh`:: Builds the `${created_by}/alpine-voidbuilder:${tag}` image
+`./void-builder.sh`:: Builds the `${created_by}/void-voidbuilder:${tag}` image
+`./voidlinux-final.sh`:: Builds the `${created_by}/voidlinux:${tag}` image
 
 ## Images
 
@@ -56,5 +59,5 @@ Three images are built by the `./buildah.sh` script.
 
 ## Running the images
 
-These images are available to podman, and can be run with `podman run -it --rm ${created_by}/voidlinux` (will run the voidlinux
+These images are available to podman, and can be run with `podman run -it --rm ${created_by}/voidlinux:${tag}` (will run the voidlinux
 container's default cmd: `/bin/sh`).
