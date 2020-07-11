@@ -3,4 +3,4 @@ image: "fedora:latest"
 build_x86_64:
   script:
     - dnf install -y buildah
-    - ./build.sh
+    - ./gitlab-build.sh
