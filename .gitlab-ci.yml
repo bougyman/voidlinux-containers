@@ -1,4 +1,4 @@
 image: "bougyman/voidlinux:x86_64-glibc-locales_latest"
 
 build_x86_64:
-   - ./build.sh
+   - ./gitlab-build.sh
