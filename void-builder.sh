@@ -6,28 +6,28 @@ source lib/functions.sh
 optparse "$@"
 
 # Import alpine base builder
-alpine=$(bud from "${created_by}/alpine-voidbuilder:${ARCH}_latest") || die "$buildah_count"
+alpine=$(buildah from "${created_by}/alpine-voidbuilder:${ARCH}_latest") || die 1 "Could not get alpine-builder image"
 trap 'buildah rm "$alpine"; [ -z "$voidbuild" ] || buildah rm "$voidbuild"' EXIT
-alpine_mount=$(bud mount "$alpine") || die "$buildah_count" \
-    "Could not mount alpine! Bailing (see error above, you probably need to run in a 'bud unshare' session)"
+alpine_mount=$(buildah mount "$alpine") || die 2 \
+    "Could not mount alpine-builder! Bailing (see error above, you probably need to run in a 'buildah unshare' session)"
 
 # Build a void-based builder
-voidbuild=$(bud from scratch) || die "$buildah_count"
-bud mount "$voidbuild" || die "$buildah_count"
-bud copy "$voidbuild" "$alpine_mount"/target / || die "$buildah_count"
-bud copy "$voidbuild" void-mklive/keys/* /target/var/db/xbps/keys/ || die "$buildah_count"
+voidbuild=$(bud from scratch) || exit 3
+bud mount "$voidbuild"
+bud copy "$voidbuild" "$alpine_mount"/target /
+bud copy "$voidbuild" void-mklive/keys/* /target/var/db/xbps/keys/
 bud run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache && \
                                   ln -s /var/cache/xbps /target/var/cache/xbps && \
                                   mkdir -p /target/etc/xbps.d
                                   echo 'noextract=/usr/share/zoneinfo/right*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/locale*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/man*' >> /target/etc/xbps.d/noextract.conf && \
-                                  echo 'noextract=/usr/share/info*' >> /target/etc/xbps.d/noextract.conf" || die "$buildah_count"
+                                  echo 'noextract=/usr/share/info*' >> /target/etc/xbps.d/noextract.conf"
 bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU \
                                   --repository=${REPOSITORY}/current \
                                   --repository=${REPOSITORY}/current/musl \
                                   -r /target \
-                                  ca-certificates" || die "$buildah_count" "Error installing ca-certificates"
+                                  ca-certificates"
 
 if [ -n "$BASEPKG" ]
 then
@@ -35,7 +35,7 @@ then
     bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU \
                                       --repository=${REPOSITORY}/current \
                                       --repository=${REPOSITORY}/current/musl \
-                                      ${BASEPKG} -r /target" || die "$buildah_count" "Could not install $BASEPKG"
+                                      ${BASEPKG} -r /target"
 fi
 
 # We don't care if the removes fail. Likely they were never insalled on this arch, or can't be
@@ -45,13 +45,13 @@ do
     buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y ${exclude} -r /target " &>/dev/null || true
 done
 
-bud run "$voidbuild" -- sh -c "rm -rvf /var/xbps/cache/*" || die "$buildah_count" "Error cleaning cache"
+bud run "$voidbuild" -- sh -c "rm -rvf /var/xbps/cache/*"
 
 # Commit void-voidbuilder
-bud config --created-by "$created_by" "$voidbuild" || die "$buildah_count"
-bud config --author "$author" --label name=void-voidbuilder "$voidbuild" || die "$buildah_count"
-bud unmount "$voidbuild" || die "$buildah_count" "Could not unmount '$voidbuild'"
-bud unmount "$alpine" || die "$buildah_count" "Could not unmount '$alpine'"
-bud commit --squash "$voidbuild" "${created_by}/void-voidbuilder:${tag}" || die "$buildah_count"
+bud config --created-by "$created_by" "$voidbuild"
+bud config --author "$author" --label name=void-voidbuilder "$voidbuild"
+bud unmount "$voidbuild"
+bud unmount "$alpine"
+bud commit --squash "$voidbuild" "${created_by}/void-voidbuilder:${tag}"
 
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :

@@ -6,22 +6,23 @@ source lib/functions.sh
 optparse "$@"
 
 # Import the void-based builder
-voidbuild=$(bud from "${created_by}/void-voidbuilder:${ARCH}_latest") || die "$buildah_count" "Unable to build from tag ${tag}"
+image_name="${created_by}/void-voidbuilder:${ARCH}_latest"
+voidbuild=$(buildah from "$image_name") || die 1 "Unable to build from ${image_name}"
 trap 'buildah rm $voidbuild; [ -z "$void" ] || buildah rm $void' EXIT
-voidbuild_mount=$(bud mount "$voidbuild") || die "$buildah_count"
+voidbuild_mount=$(buildah mount "$voidbuild") || die 2 "Could not mount '$voidbuild', you may need to run in a buildah unshare session"
 
 # Build the final voidlinux container
-void=$(bud from scratch) || die "$buildah_count"
-bud mount "$void" >/dev/null || die "$buildah_count" "Could not mount '$void'"
+void=$(buildah from scratch) || die 3 "Could not build from scratch!"
+bud mount "$void" >/dev/null
 
 # Perhaps rsync here with a lot of excluded files instead of using buildah copy?
-bud copy "$void" "$voidbuild_mount"/target / || die "$buildah_count" "Error copying from '$void' to target"
+bud copy "$void" "$voidbuild_mount"/target /
 
 # Standard bootstrapping
 bud run "$void" -- sh -c "rm /var/cache/xbps && \
                               xbps-reconfigure -a && \
                               update-ca-certificates && \
-                              xbps-install -Syu" || die "$buildah_count" "Error configuring void"
+                              xbps-install -Syu"
 
 # Instead of adding this to noextract, just kill all of the possible bloat culprits
 # This allows overriding (installing) these things if someone does desire, in a container 
@@ -29,7 +30,7 @@ bud run "$void" -- sh -c "rm /var/cache/xbps && \
 bud run "$void" -- sh -c "rm -rvf /usr/share/X11/* && \
                               rm -rvf /usr/share/info/* && \
                               rm -rvf /usr/share/doc/* && \
-                              rm -rvf /usr/share/man/*" || die "$buildah_count" "Error cleaning up"
+                              rm -rvf /usr/share/man/*"
 # Here's where the current cleanup happens, dirty style.
 glibc_tags=glibc-locales
 if [[ "${tag}" =~  $glibc_tags ]]
@@ -48,24 +49,24 @@ bud run "$void" -- sh -c "rm -rvf /usr/lib/gconv/[BCDEFGHIJKLMNOPQRSTVZYZ]* && \
                               rm -rvf /usr/lib/gconv/lib*"
 # Make sure everything is up to date, then kill the package cache
 bud run "$void" -- sh -c "xbps-install -Sy mawk && \
-                              rm -vfr /var/cache/xbps" || die "$buildah_count" "Error installing mawk and cleaning cache"
+                              rm -vfr /var/cache/xbps"
 
-bud unmount "$voidbuild" >/dev/null || die "$buildah_count" "Error unmounting '$voidbuild'"
+bud unmount "$voidbuild" >/dev/null
 
 # Set up environment
-bud config --env "TERM=linux" "$void" || die "$buildah_count" "Error setting environment TERM=linux"
+bud config --env "TERM=linux" "$void"
 
 # This will be the container's default CMD (What it runs)
-bud config --cmd '[ "/bin/sh" ]' "$void" || die "$buildah_count" "Error setting CMD"
+bud config --cmd '[ "/bin/sh" ]' "$void"
 
 # Metadata
 bud config --created-by "$created_by" "$void"|| die "$buildah_count" "Error setting created-by"
 bud config --author "$author" --label name=voidlinux "$void"|| die "$buildah_count" "Error setting author"
 
 # Cleanup
-bud unmount "$void" || die "$buildah_count" "Failed unmounting '$void'"
+bud unmount "$void"
 
 # Commit voidlinux container
-bud commit --squash "$void" "${created_by}/voidlinux:${tag}" || die "$buildah_count" "Failed commiting '$void'"
+bud commit --squash "$void" "${created_by}/voidlinux:${tag}"
 
 # NOTE: The trap above will remove the temporary build container ($void).

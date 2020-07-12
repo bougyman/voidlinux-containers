@@ -39,11 +39,12 @@ die() { # {{{
 bud() { # {{{
     : "${buildah_count:=0}"
     ((buildah_count++))
-    if ! buildah "$@"
+    buildah "$@"
+    buildah_err=$?
+    if [ $buildah_err -ne 0 ]
     then
-        err=$?
         echo "Buildah command #${buildah_count} failed, Bailing" >&2
-        exit $err
+        die $buildah_err
     fi
 } # }}}
 
