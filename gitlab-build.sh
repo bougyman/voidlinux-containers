@@ -18,6 +18,7 @@ echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-s
 image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:latest"
 
 export tag=${ARCH}-glibc-locales_latest
 ./buildah.sh -t x86_64-glibc-locales_latest
