@@ -1,4 +1,5 @@
 FROM registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:x86_64-glibc-locales_latest
-MAINTAINER bougyman <bougyman@hey.com>
+LABEL maintainer="bougyman <bougyman@hey.com>" description="Void Linux image with glibc plus en_US, C, and POSIX glibc-locales" \
+      origin="registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:x86_64-glibc-locales_latest"
 CMD /bin/sh
 
