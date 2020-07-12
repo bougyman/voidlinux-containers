@@ -17,7 +17,7 @@ image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
 echo "Pushing to $FQ_IMAGE_NAME"
 set -x
-: "${FQ_IMAGE_NAME:=${CI_REGISTRY}/bougyman/voidlinux-containers/voidlinux}"
+: "${FQ_IMAGE_NAME:=docker://${CI_REGISTRY}/bougyman/voidlinux-containers/voidlinux}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
 
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :
