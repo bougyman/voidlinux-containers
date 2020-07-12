@@ -6,7 +6,7 @@ source lib/functions.sh
 optparse "$@"
 
 # Import the void-based builder
-voidbuild=$(bud from "${created_by}/void-voidbuilder:${tag}") || die "$buildah_count" "Unable to build from tag ${tag}"
+voidbuild=$(bud from "${created_by}/void-voidbuilder:${ARCH}_latest") || die "$buildah_count" "Unable to build from tag ${tag}"
 trap 'buildah rm $voidbuild; [ -z "$void" ] || buildah rm $void' EXIT
 voidbuild_mount=$(bud mount "$voidbuild") || die "$buildah_count"
 
@@ -55,8 +55,8 @@ bud unmount "$voidbuild" >/dev/null || die "$buildah_count" "Error unmounting '$
 # Set up environment
 bud config --env "TERM=linux" "$void" || die "$buildah_count" "Error setting environment TERM=linux"
 
-# This will be the container's default entrypoint (What it runs)
-bud config --entrypoint '[ "/bin/sh" ]' "$void" || die "$buildah_count" "Error setting entrypoint"
+# This will be the container's default CMD (What it runs)
+bud config --cmd '[ "/bin/sh" ]' "$void" || die "$buildah_count" "Error setting CMD"
 
 # Metadata
 bud config --created-by "$created_by" "$void"|| die "$buildah_count" "Error setting created-by"

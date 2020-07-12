@@ -15,6 +15,7 @@ echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-s
 
 : "${FQ_IMAGE_NAME:=docker://${CI_REGISTRY}/bougyman/voidlinux-containers/voidlinux}"
 
+# Build standard minimal voidlinux with glibc (no glibc-locales)
 ./buildah.sh
 image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
@@ -23,13 +24,15 @@ buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
 echo "Pushing to ${FQ_IMAGE_NAME}:latest"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:latest"
 
+# Build standard minimal voidlinux with glibc and glibc-locales
 export tag=${ARCH}-glibc-locales_latest
-./buildah.sh -t x86_64-glibc-locales_latest
+./voidlinux.sh -t x86_64-glibc-locales_latest
 image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
 echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
 
+# Build minimal voidlinux with musl (no glibc)
 export ARCH=x86_64-musl
 export tag=x86_64-musl_latest
 ./buildah.sh -a x86_64-musl

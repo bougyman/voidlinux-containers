@@ -6,7 +6,7 @@ source lib/functions.sh
 optparse "$@"
 
 # Import alpine base builder
-alpine=$(bud from "${created_by}/alpine-voidbuilder:${tag}") || die "$buildah_count"
+alpine=$(bud from "${created_by}/alpine-voidbuilder:${ARCH}_latest") || die "$buildah_count"
 trap 'buildah rm "$alpine"; [ -z "$voidbuild" ] || buildah rm "$voidbuild"' EXIT
 alpine_mount=$(bud mount "$alpine") || die "$buildah_count" \
     "Could not mount alpine! Bailing (see error above, you probably need to run in a 'bud unshare' session)"
