@@ -6,7 +6,7 @@
 optparse "$@"
 
 export BASEPKG ARCH REPOSITORY author created_by tag
-# export BUILDAH_FORMAT=docker If we want docker format
+export BUILDAH_FORMAT=docker # Use docker instead of OCI format
 export STORAGE_DRIVER=vfs # Use vfs because overlay on overlay in Docker is whack
 
 export REGISTRY_AUTH_FILE=${HOME}/auth.json # Set registry file location
