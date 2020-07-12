@@ -57,7 +57,22 @@ Three images are built by the `./buildah.sh` script.
 `${created_by}/void-voidbuilder`:: A voidlinux image with $BASEPKG installed at /target
 `${created_by}/voidlinux`:: The final configured and stripped voidlinux image, suitable for running containers, or using as a base for other containers
 
-## Running the images
+### Publishing the images
+These images are available in the buildah local registry, as viewed with `buildah images`.
 
-These images are available to podman, and can be run with `podman run -it --rm ${created_by}/voidlinux:${tag}` (will run the voidlinux
-container's default cmd: `/bin/sh`).
+To export to a local docker registry, use `buildah push "${created_by}/voidlinux/voidlinux:${tag}" docker-daemon:<image_name>:<tag>`
+
+See https://github.com/containers/buildah/blob/master/docs/buildah-push.md[The buildah-push documentation] for how to push to various
+other registries.
+
+### Running the images
+
+These images are available to podman immediately, and can be run with `podman run -it --rm ${created_by}/voidlinux:${tag}`
+ (will run the voidlinux container's default cmd: `/bin/sh`).
+
+To run with docker, first publish to a docker registery, then use `docker run -it --rm <image_name>:<tag>`, where `<image_name>` and `<tag>`
+are the names you published to the docker registry.
+
+## CI / CD
+
+These 3 images are built nightly using gitlab pipelines, and available from https://gitlab.com/bougyman/voidlinux-containers/container_registry/eyJuYW1lIjoiYm91Z3ltYW4vdm9pZGxpbnV4LWNvbnRhaW5lcnMvdm9pZGxpbnV4IiwidGFnc19wYXRoIjoiL2JvdWd5bWFuL3ZvaWRsaW51eC1jb250YWluZXJzL3JlZ2lzdHJ5L3JlcG9zaXRvcnkvMTIxNDczOC90YWdzP2Zvcm1hdD1qc29uIiwiaWQiOjEyMTQ3Mzh9[This Gitlab Registry]

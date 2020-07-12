@@ -1,4 +1,5 @@
 #!/bin/bash
+# CI build for github. Builds voidlinux images for x86_64, x84_64 with glibc-locales, and x86_64-musl.
 
 # Brings in optparse(), die(), and bud()
 # shellcheck source=lib/functions.sh
@@ -17,13 +18,16 @@ echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-s
 ./buildah.sh
 image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
+echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+echo "Pushing to ${FQ_IMAGE_NAME}:latest"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:latest"
 
 export tag=${ARCH}-glibc-locales_latest
 ./buildah.sh -t x86_64-glibc-locales_latest
 image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
+echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
 
 export ARCH=x86_64-musl
