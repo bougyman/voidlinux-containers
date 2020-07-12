@@ -75,4 +75,5 @@ are the names you published to the docker registry.
 
 ## CI / CD
 
-These 3 images are built nightly using gitlab pipelines, and available from https://gitlab.com/bougyman/voidlinux-containers/container_registry/eyJuYW1lIjoiYm91Z3ltYW4vdm9pZGxpbnV4LWNvbnRhaW5lcnMvdm9pZGxpbnV4IiwidGFnc19wYXRoIjoiL2JvdWd5bWFuL3ZvaWRsaW51eC1jb250YWluZXJzL3JlZ2lzdHJ5L3JlcG9zaXRvcnkvMTIxNDczOC90YWdzP2Zvcm1hdD1qc29uIiwiaWQiOjEyMTQ3Mzh9[This Gitlab Registry]
+These 3 images are built nightly using https://gitlab.com/bougyman/voidlinux-containers/-/pipelines[gitlab pipelines],
+and available from https://gitlab.com/bougyman/voidlinux-containers/container_registry/eyJuYW1lIjoiYm91Z3ltYW4vdm9pZGxpbnV4LWNvbnRhaW5lcnMvdm9pZGxpbnV4IiwidGFnc19wYXRoIjoiL2JvdWd5bWFuL3ZvaWRsaW51eC1jb250YWluZXJzL3JlZ2lzdHJ5L3JlcG9zaXRvcnkvMTIxNDczOC90YWdzP2Zvcm1hdD1qc29uIiwiaWQiOjEyMTQ3Mzh9[This Gitlab Registry]
