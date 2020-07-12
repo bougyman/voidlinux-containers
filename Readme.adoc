@@ -9,7 +9,7 @@ endif::[]
 :toc:
 
 This repository contains https://github.com/containers/buildah[`buildah`] scripts for building
-OCI compliant voidlinux containers.
+OCI compliant or Docker formatted voidlinux containers.
 
 ## Usage
 
