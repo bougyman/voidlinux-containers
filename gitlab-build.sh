@@ -26,7 +26,7 @@ buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:latest"
 
 # Build standard minimal voidlinux with glibc and glibc-locales
 export tag=${ARCH}-glibc-locales_latest
-./buildah.sh -t x86_64-glibc-locales_latest
+./voidlinux-final.sh -t x86_64-glibc-locales_latest
 image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
 echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
