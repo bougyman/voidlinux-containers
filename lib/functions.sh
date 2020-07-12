@@ -41,8 +41,9 @@ bud() { # {{{
     ((buildah_count++))
     if ! buildah "$@"
     then
+        err=$?
         echo "Buildah command #${buildah_count} failed, Bailing" >&2
-        exit "$buildah_count"
+        exit $err
     fi
 } # }}}
 
