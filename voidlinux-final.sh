@@ -61,8 +61,8 @@ bud config --entrypoint '[]' "$void"
 bud config --cmd "/bin/sh" "$void"
 
 # Metadata
-bud config --created-by "$created_by" "$void"|| die "$buildah_count" "Error setting created-by"
-bud config --author "$author" --label name=voidlinux "$void"|| die "$buildah_count" "Error setting author"
+bud config --created-by "$created_by" "$void"
+bud config --author "$author" --label name=voidlinux "$void"
 
 # Cleanup
 bud unmount "$void"
