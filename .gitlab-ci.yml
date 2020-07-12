@@ -1,6 +1,8 @@
 image: "fedora:latest"
 
 build_x86_64:
+  variables:
+    IMAGE_NAME: "bougyman/voidlinux"
   script:
     - dnf install -y buildah git podman wget xz
     - git submodule init
