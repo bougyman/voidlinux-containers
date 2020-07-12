@@ -22,5 +22,5 @@ bud run "$alpine" -- xbps-install.static -yMU --repository=${REPOSITORY}/current
 bud config --created-by "$created_by" "$alpine"
 bud config --author "$author" --label name=alpine-voidbuilder "$alpine"
 bud unmount "$alpine" || die "$buildah_err"
-bud commit --squash "$alpine" "${created_by}/alpine-voidbuilder:${tag}"
+bud commit --squash "$alpine" "${created_by}/alpine-voidbuilder:${ARCH}_latest"
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :

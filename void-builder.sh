@@ -52,6 +52,6 @@ bud config --created-by "$created_by" "$voidbuild"
 bud config --author "$author" --label name=void-voidbuilder "$voidbuild"
 bud unmount "$voidbuild"
 bud unmount "$alpine"
-bud commit --squash "$voidbuild" "${created_by}/void-voidbuilder:${tag}"
+bud commit --squash "$voidbuild" "${created_by}/void-voidbuilder:${ARCH}_latest"
 
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :

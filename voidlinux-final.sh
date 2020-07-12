@@ -57,6 +57,7 @@ bud unmount "$voidbuild" >/dev/null
 bud config --env "TERM=linux" "$void"
 
 # This will be the container's default CMD (What it runs)
+bud config --entrypoint NONE "$void"
 bud config --cmd '[ "/bin/sh" ]' "$void"
 
 # Metadata
