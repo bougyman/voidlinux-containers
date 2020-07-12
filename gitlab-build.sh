@@ -41,4 +41,7 @@ CONTAINER_ID=$(buildah from "${image_name}")
 echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
 
+# Trigger Docker Hub builds
+curl -X POST -H "Content-Type: application/json" --data '{"source_type": "Branch", "source_name": "main"}' "$docker_hook"
+
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :
