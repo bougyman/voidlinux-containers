@@ -1,4 +1,4 @@
-Docker containers based on the (Void Linux)http://voidlinux.org operating system.
+Docker containers based on the [Void Linux](http://voidlinux.org) operating system.
 
 ## Tags
 
