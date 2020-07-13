@@ -6,23 +6,27 @@ source lib/functions.sh
 optparse "$@"
 
 # Import the void-based builder
-image_name="${created_by}/void-voidbuilder:${ARCH}_latest"
+if [[ "$tag" =~ $striptags ]]
+then
+    image_name="${created_by}/void-voidbuilder:${tag}"
+else
+    image_name="${created_by}/void-voidbuilder:${ARCH}_latest"
+fi
 voidbuild=$(buildah from "$image_name") || die 1 "Unable to build from ${image_name}"
 trap 'buildah rm $voidbuild; [ -z "$void" ] || buildah rm $void' EXIT
 voidbuild_mount=$(buildah mount "$voidbuild") || die 2 "Could not mount '$voidbuild', you may need to run in a buildah unshare session"
 
 # Build the final voidlinux container
 void=$(buildah from scratch) || die 3 "Could not build from scratch!"
-bud mount "$void" >/dev/null
+void_mount=$(buildah mount "$void") || die 4 "Cloud not mount '$void'"
+echo "Void mount is '$void_mount'"
 
-# Perhaps rsync here with a lot of excluded files instead of using buildah copy?
+# Copy the base build to / of the container
 bud copy "$void" "$voidbuild_mount"/target /
 
 # Standard bootstrapping
 bud run "$void" -- sh -c "rm /var/cache/xbps && \
-                              xbps-reconfigure -a && \
-                              update-ca-certificates && \
-                              xbps-install -Syu"
+                              xbps-reconfigure -a"
 
 # Instead of adding this to noextract, just kill all of the possible bloat culprits
 # This allows overriding (installing) these things if someone does desire, in a container 
@@ -46,9 +50,7 @@ then
 fi
 
 bud run "$void" -- sh -c "rm -rvf /usr/lib/gconv/[BCDEFGHIJKLMNOPQRSTVZYZ]* && \
-                              rm -rvf /usr/lib/gconv/lib*"
-# Make sure everything is up to date, then kill the package cache
-bud run "$void" -- sh -c "xbps-install -Sy mawk && \
+                              rm -rvf /usr/lib/gconv/lib* && \
                               rm -vfr /var/cache/xbps"
 
 bud unmount "$voidbuild" >/dev/null

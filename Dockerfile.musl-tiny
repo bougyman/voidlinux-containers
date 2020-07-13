@@ -1,0 +1,5 @@
+FROM registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:musl-tiny
+LABEL maintainer="bougyman <bougyman@hey.com>" \
+      description="Void Linux image with musl libc (no glibc) and busybox instead of coreutils. Stripped glibc. Bare to the bone." \
+      origin="registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:musl-tiny"
+CMD /bin/sh

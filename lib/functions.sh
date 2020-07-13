@@ -9,6 +9,8 @@
 : "${ARCH:=x86_64}"
 : "${BASEPKG:=base-minimal}"
 
+striptags="stripped|tiny"
+
 usage() { # {{{
     cat <<-EOT
     Usage: $0 <options>

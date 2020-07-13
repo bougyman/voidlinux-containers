@@ -16,7 +16,7 @@ wget -O- "${REPOSITORY}/static/xbps-static-latest.$(uname -m)-musl.tar.xz" | tar
 XBPS_ARCH=$ARCH
 export XBPS_ARCH
 bud run "$alpine" -- xbps-install.static -yMU --repository=${REPOSITORY}/current \
-                                             --repository=${REPOSITORY}/current/musl -r /target base-minimal
+                                             --repository=${REPOSITORY}/current/musl -r /target base-minimal binutils busybox
 
 # Commit alpine-voidbuilder
 bud config --created-by "$created_by" "$alpine"

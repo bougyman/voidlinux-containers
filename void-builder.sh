@@ -18,7 +18,7 @@ bud copy "$voidbuild" "$alpine_mount"/target /
 bud copy "$voidbuild" void-mklive/keys/* /target/var/db/xbps/keys/
 bud run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache && \
                                   ln -s /var/cache/xbps /target/var/cache/xbps && \
-                                  mkdir -p /target/etc/xbps.d
+                                  mkdir -p /target/etc/xbps.d && \
                                   echo 'noextract=/usr/share/zoneinfo/right*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/locale*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/man*' >> /target/etc/xbps.d/noextract.conf && \
@@ -37,13 +37,40 @@ then
                                       --repository=${REPOSITORY}/current/musl \
                                       ${BASEPKG} -r /target"
 fi
-
 # We don't care if the removes fail. Likely they were never insalled on this arch, or can't be
 buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y base-minimal -r /target" &>/dev/null || true
 for exclude in $(<excludes)
 do
     buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y ${exclude} -r /target " &>/dev/null || true
 done
+
+if [[ "$tag" =~ $striptags ]]
+then
+    echo "Stripping Binaries" >&2
+    for stripfile in $(<stripfiles)
+    do
+        echo "Stripping /target${stripfile}" >&2
+        bud run "$voidbuild" -- sh -c "[ -f /target${stripfile} ] && strip /target${stripfile}"
+    done
+    # Install busybox
+    bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU \
+                                      --repository=${REPOSITORY}/current \
+                                      --repository=${REPOSITORY}/current/musl \
+                                      busybox -r /target"
+    # Exclude lots of packages
+    for exclude in $(<tinyexcludes)
+    do
+        buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y ${exclude} -r /target" || true
+    done
+
+    # Now use busybox for *
+    declare -a bbox_commands
+    mapfile -t bbox_commands < <(cat busybox-commands)
+    bud run "$voidbuild" -- sh -c "for cmd in ${bbox_commands[*]}
+                                   do
+                                       [ -e \"/target/bin/\$cmd\" ] || ln -svf /bin/busybox \"/target/bin/\$cmd\"
+                                   done"
+fi
 
 bud run "$voidbuild" -- sh -c "rm -rvf /var/xbps/cache/*"
 
@@ -52,6 +79,11 @@ bud config --created-by "$created_by" "$voidbuild"
 bud config --author "$author" --label name=void-voidbuilder "$voidbuild"
 bud unmount "$voidbuild"
 bud unmount "$alpine"
-bud commit --squash "$voidbuild" "${created_by}/void-voidbuilder:${ARCH}_latest"
+if [[ "$tag" =~ $striptags ]]
+then
+    bud commit --squash "$voidbuild" "${created_by}/void-voidbuilder:${tag}"
+else
+    bud commit --squash "$voidbuild" "${created_by}/void-voidbuilder:${ARCH}_latest"
+fi
 
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :
