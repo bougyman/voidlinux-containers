@@ -1,0 +1,5 @@
+FROM registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:musl-tmux
+LABEL maintainer="bougyman <bougyman@hey.com>" \
+      description="Void Linux image with tmux using musl libc (no glibc) and coreutils. Nothing stripped" \
+      origin="registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:musl-tmux"
+CMD /bin/sh
