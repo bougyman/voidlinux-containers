@@ -70,6 +70,15 @@ CONTAINER_ID=$(buildah from "${image_name}")
 echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
 
+# Build tiny voidlinux with tmux, using musl and busybox, no coreutils. Strip all libs
+export tag=musl-tmux-tiny
+./void-builder.sh -b "tmux ncurses-base" -t "${tag}"
+./voidlinux-final.sh -b "tmux ncurses-base" -c "/usr/bin/tmux" -t "${tag}"
+image_name="${created_by}/voidlinux:${tag}"
+CONTAINER_ID=$(buildah from "${image_name}")
+echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
+buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+
 # Trigger Docker Hub builds, "$docker_hook" is supplied by gitlab, defined in this project's CI/CD "variables"
 # shellcheck disable=SC2154
 curl -X POST -H "Content-Type: application/json" --data '{"source_type": "Branch", "source_name": "main"}' "$docker_hook" || \

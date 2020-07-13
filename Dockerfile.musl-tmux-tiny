@@ -1,0 +1,5 @@
+FROM registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:musl-tmux-tiny
+LABEL maintainer="bougyman <bougyman@hey.com>" \
+      description="Void Linux image with tmux using musl libc (no glibc) and busybox instead of coreutils. Stripped glibc. Bare to the bone." \
+      origin="registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:musl-tmux-tiny"
+CMD /usr/bin/tmux
