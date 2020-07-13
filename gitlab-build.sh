@@ -55,5 +55,6 @@ buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
 # shellcheck disable=SC2154
 curl -X POST -H "Content-Type: application/json" --data '{"source_type": "Branch", "source_name": "main"}' "$docker_hook" || \
     die 33 "Failed to trigger docker build"
+echo
 
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :
