@@ -22,6 +22,8 @@ bud run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache
                                   echo 'noextract=/usr/share/zoneinfo/right*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/locale*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/man*' >> /target/etc/xbps.d/noextract.conf && \
+                                  echo 'noextract=/usr/share/bash-completion*' >> /target/etc/xbps.d/noextract.conf && \
+                                  echo 'noextract=/usr/share/zsh*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/info*' >> /target/etc/xbps.d/noextract.conf"
 bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU \
                                   --repository=${REPOSITORY}/current \
@@ -58,14 +60,11 @@ then
                                       --repository=${REPOSITORY}/current/musl \
                                       busybox -r /target"
     # Exclude lots of packages
-    for exclude in $(<tinyexcludes)
-    do
-        buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y ${exclude} -r /target" || true
-    done
+    mapfile -t tinyexcludes < tinyexcludes
+    buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y ${tinyexcludes[*]} -r /target" || true
 
     # Now use busybox for *
-    declare -a bbox_commands
-    mapfile -t bbox_commands < <(cat busybox-commands)
+    mapfile -t bbox_commands < busybox-commands
     bud run "$voidbuild" -- sh -c "for cmd in ${bbox_commands[*]}
                                    do
                                        [ -e \"/target/bin/\$cmd\" ] || ln -svf /bin/busybox \"/target/bin/\$cmd\"

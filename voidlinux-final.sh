@@ -25,17 +25,11 @@ echo "Void mount is '$void_mount'"
 bud copy "$void" "$voidbuild_mount"/target /
 
 # Standard bootstrapping
-bud run "$void" -- sh -c "rm /var/cache/xbps && \
+bud run "$void" -- sh -c "rm /usr/share/man/* -rvf && \
+                              rm -rvf /var/cache/xbps && \
                               xbps-reconfigure -a"
 
-# Instead of adding this to noextract, just kill all of the possible bloat culprits
-# This allows overriding (installing) these things if someone does desire, in a container 
-# instance, instead of always excluding them from xbps extraction with noextract.
-bud run "$void" -- sh -c "rm -rvf /usr/share/X11/* && \
-                              rm -rvf /usr/share/info/* && \
-                              rm -rvf /usr/share/doc/* && \
-                              rm -rvf /usr/share/man/*"
-# Here's where the current cleanup happens, dirty style.
+# Here we add glibs-locales, for en_US, C, and POSIX only (needed for tmux and others when using glibc)
 glibc_tags=glibc-locales
 if [[ "${tag}" =~  $glibc_tags ]]
 then

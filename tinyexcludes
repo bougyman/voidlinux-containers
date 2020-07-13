@@ -16,3 +16,4 @@ gzip
 dash
 libcap-ng
 libuuid
+gmp
