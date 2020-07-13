@@ -38,6 +38,7 @@ image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
 echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:latest"
 
 # Build tiny voidlinux with tmux, using glibc and busybox, no coreutils. Strip all libs
 export tag=tmux-tiny
@@ -47,7 +48,6 @@ image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
 echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:latest"
 
 # Build minimal voidlinux with musl (no glibc)
 export ARCH=x86_64-musl
