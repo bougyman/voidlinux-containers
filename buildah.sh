@@ -5,7 +5,7 @@
 # shellcheck source=lib/functions.sh
 source lib/functions.sh
 optparse "$@"
-export BASEPKG ARCH REPOSITORY author created_by tag
+export BASEPKG ARCH REPOSITORY author created_by tag striptags glibc_tags container_cmd
 
 ./alpine-builder.sh && \
 ./void-builder.sh && \

@@ -35,20 +35,18 @@ bud run "$void" -- /usr/bin/sh -c "/usr/bin/rm /usr/share/man/* -rvf && \
                                    /usr/bin/rm -rvf /var/cache/xbps && \
                                    xbps-reconfigure -a"
 
-# Here we add glibs-locales, for en_US, C, and POSIX only (needed for tmux and others when using glibc)
-glibc_tags=glibc-locales
-if [[ "${tag}" =~  $glibc_tags ]]
+if [[ "${tag}" =~ $glibc_locale_tags ]]
 then
-    # Retains only en_US, C, and POSIX glibc-locale files/functionality
-    bud run "$void" -- sh -c "xbps-install -y glibc-locales && \
-                                  sed -i 's/^#en_US/en_US/' /etc/default/libc-locales && \
-                                  xbps-reconfigure -f glibc-locales && \
-                                  ls -d /usr/share/locale/* | egrep -v 'en_US|locale.alias|C|POSIX' | xargs rm -rf && \
-                                  ls /usr/share/i18n/locales/* | egrep -v 'en_US|locale.alias|C|POSIX' | xargs rm -f && \
-                                  ls /usr/share/i18n/charmaps/* | egrep -v 'en_US|locale.alias|C|POSIX' | xargs rm -f" || \
-                                      die "$buildah_count" "Failure setting up glibc-locales"
+    # No need for this on musl
+    if [[ ! "${ARCH}" =~ musl ]]
+    then
+        bud run "$void" -- /usr/bin/sh -c "xbps-reconfigure -f glibc-locales && \
+                                           ls -d /usr/share/locale/* | egrep -v 'en_US|locale.alias|C|POSIX' | xargs rm -rf && \
+                                           ls /usr/share/i18n/locales/* | egrep -v 'en_US|locale.alias|C|POSIX' | xargs rm -f && \
+                                           ls /usr/share/i18n/charmaps/* | egrep -v 'en_US|locale.alias|C|POSIX' | xargs rm -f"
+    fi
 fi
-
+                                       
 bud run "$void" -- sh -c "rm -rvf /usr/lib/gconv/[BCDEFGHIJKLMNOPQRSTVZYZ]* && \
                               rm -rvf /usr/lib/gconv/lib* && \
                               rm -vfr /var/cache/xbps"
@@ -60,7 +58,7 @@ bud config --env "TERM=linux" "$void"
 
 # This will be the container's default CMD (What it runs)
 bud config --entrypoint '[]' "$void"
-bud config --cmd "/bin/sh" "$void"
+bud config --cmd "$container_cmd" "$void"
 
 # Metadata
 bud config --created-by "$created_by" "$void"

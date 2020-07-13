@@ -28,6 +28,7 @@ bud run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache
                                   mkdir -p /target/etc/xbps.d && \
                                   echo 'noextract=/usr/share/zoneinfo/right*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/locale*' >> /target/etc/xbps.d/noextract.conf && \
+                                  echo 'noextract=!/usr/share/locale/locale.alias' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/man*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/bash-completion*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/zsh*' >> /target/etc/xbps.d/noextract.conf && \
@@ -74,6 +75,21 @@ then
                                    do
                                        [ -e \"/target/usr/bin/\$cmd\" ] || ln -svf /usr/bin/busybox \"/target/usr/bin/\$cmd\"
                                    done"
+fi
+
+# Here we add glibs-locales, for en_US, C, and POSIX only (needed for tmux and others when using glibc)
+if [[ "${tag}" =~  $glibc_locale_tags ]]
+then
+    # No need to do this on musl
+    if [[ ! "${ARCH}" =~ musl ]]
+    then
+        # Retains only en_US, C, and POSIX glibc-locale files/functionality
+        bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU  \
+                                          --repository=${REPOSITORY}/current \
+                                          --repository=${REPOSITORY}/current/musl \
+                                          glibc-locales -r /target && \
+                                       sed -i 's/^#en_US/en_US/' /target/etc/default/libc-locales"
+    fi
 fi
 
 bud run "$voidbuild" -- sh -c "rm -rvf /var/xbps/cache/*"

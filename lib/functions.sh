@@ -9,7 +9,10 @@
 : "${ARCH:=x86_64}"
 : "${BASEPKG:=base-minimal}"
 
+container_cmd=/bin/sh
 striptags="stripped|tiny"
+glibc_locale_tags="glibc-locales|tmux"
+export striptags glibc_locale_tags
 
 usage() { # {{{
     cat <<-EOT
@@ -19,6 +22,7 @@ usage() { # {{{
                      See http://build.voidlinux.org for archs available
            -t TAG  - The name of the image. Defaults to ${ARCH}-latest
            -b PKG  - The name of the "base" package to install. Default: 'base-minimal'. Set to '' to not install base at all
+           -c CMD  - The command to use for the default container command (Default: /bin/sh)
 EOT
 } # }}}
 
@@ -51,7 +55,7 @@ bud() { # {{{
 } # }}}
 
 optparse() { # {{{
-    while getopts :ha:t:b: opt # {{{
+    while getopts :ha:t:b:c: opt # {{{
     do
         case $opt in
             a)
@@ -62,6 +66,9 @@ optparse() { # {{{
                 ;;
             b)
                 BASEPKG=$OPTARG
+                ;;
+            c)
+                container_cmd=$OPTARG
                 ;;
             h)
                 usage
