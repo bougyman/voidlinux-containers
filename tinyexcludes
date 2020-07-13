@@ -17,3 +17,4 @@ dash
 libcap-ng
 libuuid
 gmp
+runit
