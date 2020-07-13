@@ -21,8 +21,8 @@ image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
 echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
-echo "Pushing to ${FQ_IMAGE_NAME}:latest"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:latest"
+echo "Tagging as ${FQ_IMAGE_NAME}:latest"
+podman tag "$FQ_IMAGE_NAME:${tag}" "$FQ_IMAGE_NAME:latest"
 
 # Build standard minimal voidlinux with glibc and glibc-locales
 export tag=${ARCH}-glibc-locales_latest
