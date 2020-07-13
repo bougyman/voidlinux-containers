@@ -44,7 +44,8 @@ buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
 # Build tiny voidlinux with musl (no glibc) and busybox instead of coreutils
 export ARCH=x86_64-musl
 export tag=musl-tiny
-./buildah.sh -a x86_64-musl -t musl-tiny
+./void-builder.sh -a x86_64-musl -t musl-tiny
+./voidlinux-final.sh -a x86_64-musl -t musl-tiny
 image_name="${created_by}/voidlinux:${tag}"
 CONTAINER_ID=$(buildah from "${image_name}")
 echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
