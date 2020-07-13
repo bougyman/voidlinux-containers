@@ -49,19 +49,15 @@ done
 if [[ "$tag" =~ $striptags ]]
 then
     echo "Stripping Binaries" >&2
-    for stripfile in $(<stripfiles)
-    do
-        echo "Stripping /target${stripfile}" >&2
-        bud run "$voidbuild" -- sh -c "[ -f /target${stripfile} ] && strip /target${stripfile}"
-    done
+    buildah run "$voidbuild" -- sh -c 'find /target/lib/ -maxdepth 1 -type f ! -type l -exec strip -v {} \;'
     # Install busybox
     bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU \
                                       --repository=${REPOSITORY}/current \
                                       --repository=${REPOSITORY}/current/musl \
                                       busybox -r /target"
     # Exclude lots of packages
-    mapfile -t tinyexcludes < tinyexcludes
-    buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y ${tinyexcludes[*]} -r /target" || true
+    mapfile -t tiny_excludes < tinyexcludes
+    buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y ${tiny_excludes[*]} -r /target" || true
 
     # Now use busybox for *
     mapfile -t bbox_commands < busybox-commands
