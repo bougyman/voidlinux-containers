@@ -1,0 +1,6 @@
+FROM registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:glibc-tiny
+LABEL maintainer="bougyman <bougyman@hey.com>" \
+      description="Void Linux image with glibc (no glibc-locales) and busybox instead of coreutils. All libs stripped" \
+      origin="registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:glibc-tiny"
+ENTRYPOINT []
+CMD /bin/sh
