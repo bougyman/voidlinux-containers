@@ -30,6 +30,12 @@ echo "Void mount is '$void_mount'"
 bud copy "$void" "$voidbuild_mount"/target /
 
 
+# Set up busybox, if we're busyxboxed
+bud run "$void" -- /usr/bin/sh -c "command -v busybox && busybox --list | while read bin
+                                                                          do
+                                                                              /usr/bin/busybox ln -sf /usr/bin/busybox /usr/bin/\$bin
+                                                                          done"
+
 # Standard bootstrapping
 bud run "$void" -- /usr/bin/sh -c "/usr/bin/rm /usr/share/man/* -rvf && \
                                    /usr/bin/rm -rvf /var/cache/xbps && \
