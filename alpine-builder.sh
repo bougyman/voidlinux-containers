@@ -7,7 +7,11 @@ optparse "$@"
 
 # Build a builder from alpine
 alpine=$(buildah from alpine:3.12) || die 1 "Could not get alpine base image"
-trap 'buildah rm "$alpine"' EXIT
+# Do not remove build containers if we're debugging
+if [ -z "$BUILDAH_DEBUG" ]
+then
+    trap 'buildah rm "$alpine"' EXIT
+fi
 alpine_mount=$(buildah mount "$alpine") || die 2 "Could not mount alpine image, you may need a buildah unshare session"
 
 bud copy "$alpine" void-mklive/keys/* /target/var/db/xbps/keys/

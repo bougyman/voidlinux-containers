@@ -13,7 +13,12 @@ else
     image_name="${created_by}/void-voidbuilder:${ARCH}_latest"
 fi
 voidbuild=$(buildah from "$image_name") || die 1 "Unable to build from ${image_name}"
-trap 'buildah rm $voidbuild; [ -z "$void" ] || buildah rm $void' EXIT
+# Do not remove build containers if we're debugging
+if [ -z "$BUILDAH_DEBUG" ]
+then
+    trap 'buildah rm $voidbuild; [ -z "$void" ] || buildah rm $void' EXIT
+fi
+
 voidbuild_mount=$(buildah mount "$voidbuild") || die 2 "Could not mount '$voidbuild', you may need to run in a buildah unshare session"
 
 # Build the final voidlinux container
@@ -24,10 +29,11 @@ echo "Void mount is '$void_mount'"
 # Copy the base build to / of the container
 bud copy "$void" "$voidbuild_mount"/target /
 
+
 # Standard bootstrapping
-bud run "$void" -- sh -c "rm /usr/share/man/* -rvf && \
-                              rm -rvf /var/cache/xbps && \
-                              xbps-reconfigure -a"
+bud run "$void" -- /usr/bin/sh -c "/usr/bin/rm /usr/share/man/* -rvf && \
+                                   /usr/bin/rm -rvf /var/cache/xbps && \
+                                   xbps-reconfigure -a"
 
 # Here we add glibs-locales, for en_US, C, and POSIX only (needed for tmux and others when using glibc)
 glibc_tags=glibc-locales

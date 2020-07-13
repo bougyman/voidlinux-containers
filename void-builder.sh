@@ -7,13 +7,20 @@ optparse "$@"
 
 # Import alpine base builder
 alpine=$(buildah from "${created_by}/alpine-voidbuilder:${ARCH}_latest") || die 1 "Could not get alpine-builder image"
-trap 'buildah rm "$alpine"; [ -z "$voidbuild" ] || buildah rm "$voidbuild"' EXIT
+
+# Do not reap temp containers when debugging
+if [ -z "$BUILDAH_DEBUG" ]
+then
+    trap 'buildah rm "$alpine"; [ -z "$voidbuild" ] || buildah rm "$voidbuild"' EXIT
+fi
+
 alpine_mount=$(buildah mount "$alpine") || die 2 \
     "Could not mount alpine-builder! Bailing (see error above, you probably need to run in a 'buildah unshare' session)"
 
 # Build a void-based builder
 voidbuild=$(bud from scratch) || exit 3
-bud mount "$voidbuild"
+voidbuild_mount=$(buildah mount "$voidbuild") || die 4 "Could not mount $voidbuild"
+echo "Mount is '$voidbuild_mount'"
 bud copy "$voidbuild" "$alpine_mount"/target /
 bud copy "$voidbuild" void-mklive/keys/* /target/var/db/xbps/keys/
 bud run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache && \
@@ -25,11 +32,12 @@ bud run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache
                                   echo 'noextract=/usr/share/bash-completion*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/zsh*' >> /target/etc/xbps.d/noextract.conf && \
                                   echo 'noextract=/usr/share/info*' >> /target/etc/xbps.d/noextract.conf"
+
 bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU \
                                   --repository=${REPOSITORY}/current \
                                   --repository=${REPOSITORY}/current/musl \
                                   -r /target \
-                                  ca-certificates"
+                                  xbps base-files ca-certificates"
 
 if [ -n "$BASEPKG" ]
 then
@@ -49,8 +57,9 @@ done
 if [[ "$tag" =~ $striptags ]]
 then
     echo "Stripping Binaries" >&2
-    buildah run "$voidbuild" -- sh -c 'find /target/lib/ -maxdepth 1 -type f ! -type l -exec strip -v {} \;'
+    buildah run "$voidbuild" -- sh -c 'find /target/usr/lib/ -maxdepth 1 -type f ! -type l -exec strip -v {} \;'
     # Install busybox
+    echo "Arch is ${ARCH}"
     bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU \
                                       --repository=${REPOSITORY}/current \
                                       --repository=${REPOSITORY}/current/musl \
@@ -63,7 +72,7 @@ then
     mapfile -t bbox_commands < busybox-commands
     bud run "$voidbuild" -- sh -c "for cmd in ${bbox_commands[*]}
                                    do
-                                       [ -e \"/target/bin/\$cmd\" ] || ln -svf /bin/busybox \"/target/bin/\$cmd\"
+                                       [ -e \"/target/usr/bin/\$cmd\" ] || ln -svf /usr/bin/busybox \"/target/usr/bin/\$cmd\"
                                    done"
 fi
 
