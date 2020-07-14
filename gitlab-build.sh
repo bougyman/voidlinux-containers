@@ -82,10 +82,12 @@ then
     # Push everything to the registry
     for tag in "${published_tags[@]}"
     do
+        echo "Publishing $tag"
         podman push "bougyman/voidlinux:${tag}" "$FQ_IMAGE_NAME:${tag}"
     done
 
     # Push the glibc-tiny image as the :latest tag TODO: find a way to tag this instead of committing a new image signature for it
+    echo "Publishing :latest tag for glibc-tiny"
     podman push "bougyman/voidlinux:glibc-tiny" "$FQ_IMAGE_NAME:latest"
 
     # Trigger Docker Hub builds, "$docker_hook" is supplied by gitlab, defined in this project's CI/CD "variables"
