@@ -1,103 +1,99 @@
 #!/bin/bash
-# CI build for github. Builds voidlinux images for x86_64, x84_64 with glibc-locales, and x86_64-musl.
+# CI build for github. Builds various Void Linux based images. See Readme.md
 
-# Brings in optparse(), die(), and bud()
 # shellcheck source=lib/functions.sh
-. lib/functions.sh
+source lib/functions.sh # Brings in optparse(), usage(), die(), and bud() functions, and sets default env vars
+
+# Parse command line options
 optparse "$@"
 
 export BASEPKG ARCH REPOSITORY author created_by tag
 export BUILDAH_FORMAT=docker # Use docker instead of OCI format
 export STORAGE_DRIVER=vfs # Use vfs because overlay on overlay in Docker is whack
 
-export REGISTRY_AUTH_FILE=${HOME}/auth.json # Set registry file location
-echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" # Login to registry
+declare -a published_tags
+# Normally would not set this, but we definitely want any error to be fatal in CI
+set -e
 
-: "${FQ_IMAGE_NAME:=docker://${CI_REGISTRY}/bougyman/voidlinux-containers/voidlinux}"
+build_image() { # {{{
+    tag=$1
+    shift
+    ./buildah.sh -t "$tag" "$@"
+    finalize_image "$tag"
+} # }}}
+
+build_image_from_builder() { # {{{
+    tag=$1
+    shift
+    ./void-builder.sh -t "$tag" "$@"
+    ./voidlinux-final.sh -t "$tag" "$@"
+    finalize_image "$tag"
+} # }}}
+
+finalize_image() { # {{{
+    tag=$1
+    image_name="${created_by}/voidlinux:${tag}"
+    CONTAINER_ID=$(buildah from "${image_name}")
+    buildah commit --squash "$CONTAINER_ID" "$image_name"
+    published_tags+=( "$tag" )
+} # }}}
 
 # Build standard minimal voidlinux with glibc (no glibc-locales)
-./buildah.sh
-image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from "${image_name}")
-echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
-buildah commit --squash "$CONTAINER_ID" "${FQ_IMAGE_NAME}:${tag}"
+tag=${ARCH}_latest
+build_image "$tag"
 
-# Build standard minimal voidlinux with glibc and glibc-locales
-export tag=${ARCH}-glibc-locales_latest
-./voidlinux-final.sh -t x86_64-glibc-locales_latest
-image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from "${image_name}")
-echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
-
-# Build tiny voidlinux with glibc busybox, no coreutils. Strip all libs
-export tag=glibc-tiny
-./void-builder.sh -t glibc-tiny
-./voidlinux-final.sh -t glibc-tiny
-image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from "${image_name}")
-echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:latest"
-
-# Build tiny voidlinux with glibc plus glibc-locales for en_US, C, and posix. busybox instead of coreutils. Strip all libs
-export tag=glibc-locales-tiny
-./void-builder.sh -t glibc-locales-tiny
-./voidlinux-final.sh -t glibc-locales-tiny
-image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from "${image_name}")
-echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+set -x
+# Various other glibc variants
+for tag in ${ARCH}-glibc-locales_latest glibc-locales-tiny glibc-tiny
+do
+    build_image_from_builder "$tag"
+done
 
 # Build tiny voidlinux with tmux, using glibc and busybox, no coreutils. Strip all libs
-export tag=tmux-tiny
-./void-builder.sh -b "tmux ncurses-base" -t "${tag}"
-./voidlinux-final.sh -c "/usr/bin/tmux" -t "${tag}"
-image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from "${image_name}")
-echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+tag=tmux-tiny
+build_image_from_builder "$tag" -b "tmux ncurses-base"
 
 # Build minimal voidlinux with musl (no glibc)
 export ARCH=x86_64-musl
-export tag=x86_64-musl_latest
-./buildah.sh -a x86_64-musl
-image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from "${image_name}")
-echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
-
-# Build tiny voidlinux with tmux, using musl and coreutils. Unstripped
-export tag=musl-tmux
-./void-builder.sh -b "base-minimal tmux ncurses-base" -t "${tag}"
-./voidlinux-final.sh -c "/usr/bin/tmux" -t "${tag}"
-image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from "${image_name}")
-echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+tag=x86_64-musl_latest
+build_image "$tag"
 
 # Build tiny voidlinux with musl (no glibc) and busybox instead of coreutils
-export tag=musl-tiny
-./void-builder.sh -t musl-tiny
-./voidlinux-final.sh -t musl-tiny
-image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from "${image_name}")
-echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+tag=musl-tiny
+build_image_from_builder "$tag"
+
+# Build voidlinux with tmux, using musl and coreutils. Unstripped
+tag=musl-tmux
+build_image_from_builder "$tag" -b "base-minimal tmux ncurses-base" -c "/usr/bin/tmux"
 
 # Build tiny voidlinux with tmux, using musl and busybox, no coreutils. Strip all libs
-export tag=musl-tmux-tiny
-./void-builder.sh -b "tmux ncurses-base" -t "${tag}"
-./voidlinux-final.sh -c "/usr/bin/tmux" -t "${tag}"
-image_name="${created_by}/voidlinux:${tag}"
-CONTAINER_ID=$(buildah from "${image_name}")
-echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
-buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+tag=musl-tmux-tiny
+build_image_from_builder "$tag" -b "tmux ncurses-base" -c "/usr/bin/tmux"
 
-# Trigger Docker Hub builds, "$docker_hook" is supplied by gitlab, defined in this project's CI/CD "variables"
-# shellcheck disable=SC2154
-curl -X POST -H "Content-Type: application/json" --data '{"source_type": "Branch", "source_name": "main"}' "$docker_hook" || \
-    die 33 "Failed to trigger docker build"
-echo
+# publish images if we're run in CI
+if [ -n "$CI_REGISTRY_PASSWORD" ]
+then
+    export REGISTRY_AUTH_FILE=${HOME}/auth.json # Set registry file location
+    echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" # Login to registry
+
+    : "${FQ_IMAGE_NAME:=docker://${CI_REGISTRY}/bougyman/voidlinux-containers/voidlinux}"
+
+    # Push everything to the registry
+    for tag in "${published_tags[@]}"
+    do
+        bud commit --squash "bougyman/voidlinux:${tag}" "$FQ_IMAGE_NAME:${tag}"
+    done
+
+    # Push the glibc-tiny image as the :latest tag TODO: find a way to tag this instead of committing a new image signature for it
+    bud commit --squash "bougyman/voidlinux:glibc-tiny" "$FQ_IMAGE_NAME:latest"
+
+    # Trigger Docker Hub builds, "$docker_hook" is supplied by gitlab, defined in this project's CI/CD "variables"
+    # shellcheck disable=SC2154
+    curl -X POST -H "Content-Type: application/json" --data '{"source_type": "Branch", "source_name": "main"}' "$docker_hook" || \
+        die 33 "Failed to trigger docker build"
+    echo
+    # Show us all the images built
+    buildah images
+fi
 
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :
