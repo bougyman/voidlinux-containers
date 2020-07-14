@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# Brings in optparse(), die(), and bud()
 # shellcheck source=lib/functions.sh
-source lib/functions.sh
+source lib/functions.sh # Brings in optparse(), usage(), die(), and bud() functions, and sets default env vars
+
+# Parse command line options
 optparse "$@"
 
 # Import the void-based builder
@@ -13,6 +14,7 @@ else
     image_name="${created_by}/void-voidbuilder:${ARCH}_latest"
 fi
 voidbuild=$(buildah from "$image_name") || die 1 "Unable to build from ${image_name}"
+
 # Do not remove build containers if we're debugging
 if [ -z "$BUILDAH_DEBUG" ]
 then
@@ -21,26 +23,27 @@ fi
 
 voidbuild_mount=$(buildah mount "$voidbuild") || die 2 "Could not mount '$voidbuild', you may need to run in a buildah unshare session"
 
-# Build the final voidlinux container
+# Build the final voidlinux container from "scratch", an empty container
 void=$(buildah from scratch) || die 3 "Could not build from scratch!"
 void_mount=$(buildah mount "$void") || die 4 "Cloud not mount '$void'"
 echo "Void mount is '$void_mount'"
 
-# Copy the base build to / of the container
+# Copy the base build of void-voidbuilder to / of the container
 bud copy "$void" "$voidbuild_mount"/target /
 
-
 # Set up busybox, if we're busyxboxed
-bud run "$void" -- /usr/bin/sh -c "command -v busybox && busybox --list | while read bin
-                                                                          do
-                                                                              /usr/bin/busybox ln -sf /usr/bin/busybox /usr/bin/\$bin
-                                                                          done"
+if [ -x "$void_mount"/usr/bin/busybox ]
+then
+    bud run "$void" -- sh -c "busybox --list | while read command
+                                               do
+                                                   /usr/bin/busybox ln -sf /usr/bin/busybox /usr/bin/\$command
+                                               done"
+fi
 
 # Standard bootstrapping
-bud run "$void" -- /usr/bin/sh -c "/usr/bin/rm /usr/share/man/* -rvf && \
-                                   /usr/bin/rm -rvf /var/cache/xbps && \
-                                   xbps-reconfigure -a"
+bud run "$void" -- sh -c "rm /usr/share/man/* -rvf &&  rm -rvf /var/cache/xbps && xbps-reconfigure -a"
 
+# Do a dance with glibc-locales to only include en_US, C, and POSIX locales
 if [[ "${tag}" =~ $glibc_locale_tags ]]
 then
     # No need for this on musl
@@ -53,6 +56,7 @@ then
     fi
 fi
                                        
+# Clean up some mostly unused gconv files
 bud run "$void" -- sh -c "rm -rvf /usr/lib/gconv/[BCDEFGHIJKLMNOPQRSTVZYZ]* && \
                               rm -rvf /usr/lib/gconv/lib* && \
                               rm -vfr /var/cache/xbps"
@@ -76,4 +80,6 @@ bud unmount "$void"
 # Commit voidlinux container
 bud commit --squash "$void" "${created_by}/voidlinux:${tag}"
 
-# NOTE: The trap above will remove the temporary build container ($void).
+# NOTE: The trap at the top of this script will remove the temporary build containers. No need to do it here.
+
+# vim: set foldmethod=marker et ts=4 sts=4 sw=4 :

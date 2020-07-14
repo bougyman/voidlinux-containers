@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# Brings in optparse(), die(), and bud()
 # shellcheck source=lib/functions.sh
-source lib/functions.sh
+source lib/functions.sh # Brings in optparse(), usage(), die(), and bud() functions, and sets default env vars
+
+# Parse command line options
 optparse "$@"
 
 # Import alpine base builder

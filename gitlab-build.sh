@@ -42,7 +42,6 @@ finalize_image() { # {{{
 tag=${ARCH}_latest
 build_image "$tag"
 
-set -x
 # Various other glibc variants
 for tag in ${ARCH}-glibc-locales_latest glibc-locales-tiny glibc-tiny
 do
