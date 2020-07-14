@@ -72,10 +72,14 @@ build_image_from_builder "$tag" -b "tmux ncurses-base" -c "/usr/bin/tmux"
 # publish images if we're run in CI
 if [ -n "$CI_REGISTRY_PASSWORD" ]
 then
+    
     export REGISTRY_AUTH_FILE=${HOME}/auth.json # Set registry file location
     echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" # Login to registry
-
+    
+    set +x
+    set +e
     : "${FQ_IMAGE_NAME:=docker://${CI_REGISTRY}/bougyman/voidlinux-containers/voidlinux}"
+    set -e
 
     # Push everything to the registry
     for tag in "${published_tags[@]}"
