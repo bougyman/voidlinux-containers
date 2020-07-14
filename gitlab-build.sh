@@ -19,7 +19,7 @@ build_image() { # {{{
     tag=$1
     shift
     ./buildah.sh -t "$tag" "$@"
-    finalize_image "$tag"
+    published_tags+=( "$tag" )
 } # }}}
 
 build_image_from_builder() { # {{{
@@ -27,14 +27,6 @@ build_image_from_builder() { # {{{
     shift
     ./void-builder.sh -t "$tag" "$@"
     ./voidlinux-final.sh -t "$tag" "$@"
-    finalize_image "$tag"
-} # }}}
-
-finalize_image() { # {{{
-    tag=$1
-    image_name="${created_by}/voidlinux:${tag}"
-    CONTAINER_ID=$(buildah from "${image_name}")
-    buildah commit --squash "$CONTAINER_ID" "$image_name"
     published_tags+=( "$tag" )
 } # }}}
 
