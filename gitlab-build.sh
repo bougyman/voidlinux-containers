@@ -69,26 +69,24 @@ build_image_from_builder "$tag" -b "base-minimal tmux ncurses-base" -c "/usr/bin
 tag=musl-tmux-tiny
 build_image_from_builder "$tag" -b "tmux ncurses-base" -c "/usr/bin/tmux"
 
-# publish images if we're run in CI
+# publish images if we're run in CI # {{{
 if [ -n "$CI_REGISTRY_PASSWORD" ]
 then
     
     export REGISTRY_AUTH_FILE=${HOME}/auth.json # Set registry file location
     echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" # Login to registry
     
-    set +x
-    set +e
     : "${FQ_IMAGE_NAME:=docker://${CI_REGISTRY}/bougyman/voidlinux-containers/voidlinux}"
-    set -e
 
+    set +x
     # Push everything to the registry
     for tag in "${published_tags[@]}"
     do
-        bud commit --squash "bougyman/voidlinux:${tag}" "$FQ_IMAGE_NAME:${tag}"
+        podman push "bougyman/voidlinux:${tag}" "$FQ_IMAGE_NAME:${tag}"
     done
 
     # Push the glibc-tiny image as the :latest tag TODO: find a way to tag this instead of committing a new image signature for it
-    bud commit --squash "bougyman/voidlinux:glibc-tiny" "$FQ_IMAGE_NAME:latest"
+    podman push "bougyman/voidlinux:glibc-tiny" "$FQ_IMAGE_NAME:latest"
 
     # Trigger Docker Hub builds, "$docker_hook" is supplied by gitlab, defined in this project's CI/CD "variables"
     # shellcheck disable=SC2154
@@ -97,6 +95,6 @@ then
     echo
     # Show us all the images built
     buildah images
-fi
+fi # }}}
 
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :
