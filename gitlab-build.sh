@@ -69,10 +69,10 @@ build_image_from_builder "$tag" -b "base-minimal tmux ncurses-base" -c "/usr/bin
 tag=musl-tmux-tiny
 build_image_from_builder "$tag" -b "tmux ncurses-base" -c "/usr/bin/tmux"
 
-# publish images if we're run in CI # {{{
-if [ -n "$CI_REGISTRY_PASSWORD" ]
+# publish images _only_ if we're run in CI. This allows us to mimic the whole
+# build locally in the exact manner the CI builder does, without any publishing to registries
+if [ -n "$CI_REGISTRY_PASSWORD" ] # {{{
 then
-    
     export REGISTRY_AUTH_FILE=${HOME}/auth.json # Set registry file location
     echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" # Login to registry
     
