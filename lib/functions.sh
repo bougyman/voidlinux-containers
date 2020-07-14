@@ -5,7 +5,7 @@
 # created_by will be the prefix of the images, as well. i.e. bougyman/voidlinux
 : "${created_by:=bougyman}"
 
-: "${REPOSITORY:=https://alpha.de.repo.voidlinux.org}"
+: "${REPOSITORY:=https://alpha.us.repo.voidlinux.org}"
 : "${ARCH:=x86_64}"
 : "${BASEPKG:=base-minimal}"
 
