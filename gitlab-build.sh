@@ -40,6 +40,15 @@ echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
 buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:latest"
 
+# Build tiny voidlinux with glibc plus glibc-locales for en_US, C, and posix. busybox instead of coreutils. Strip all libs
+export tag=glibc-locales-tiny
+./void-builder.sh -t glibc-locales-tiny
+./voidlinux-final.sh -t glibc-locales-tiny
+image_name="${created_by}/voidlinux:${tag}"
+CONTAINER_ID=$(buildah from "${image_name}")
+echo "Pushing to ${FQ_IMAGE_NAME}:${tag}"
+buildah commit --squash "$CONTAINER_ID" "$FQ_IMAGE_NAME:${tag}"
+
 # Build tiny voidlinux with tmux, using glibc and busybox, no coreutils. Strip all libs
 export tag=tmux-tiny
 ./void-builder.sh -b "tmux ncurses-base" -t "${tag}"

@@ -1,0 +1,6 @@
+FROM registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:glibc-locales-tiny
+LABEL maintainer="bougyman <bougyman@hey.com>" \
+      description="Void Linux image with glibc, glibc-locales for en_US, C, and POSIX, with busybox instead of coreutils. All libs stripped" \
+      origin="registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:glibc-locales-tiny"
+ENTRYPOINT []
+CMD /bin/sh
