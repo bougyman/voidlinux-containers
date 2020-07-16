@@ -26,14 +26,10 @@ bud copy "$voidbuild" "$alpine_mount"/target /
 bud copy "$voidbuild" void-mklive/keys/* /target/var/db/xbps/keys/
 bud run "$voidbuild" -- sh -c "xbps-reconfigure -a && mkdir -p /target/var/cache && \
                                   ln -s /var/cache/xbps /target/var/cache/xbps && \
-                                  mkdir -p /target/etc/xbps.d && \
-                                  echo 'noextract=/usr/share/zoneinfo/right*' >> /target/etc/xbps.d/noextract.conf && \
-                                  echo 'noextract=/usr/share/locale*' >> /target/etc/xbps.d/noextract.conf && \
-                                  echo 'noextract=!/usr/share/locale/locale.alias' >> /target/etc/xbps.d/noextract.conf && \
-                                  echo 'noextract=/usr/share/man*' >> /target/etc/xbps.d/noextract.conf && \
-                                  echo 'noextract=/usr/share/bash-completion*' >> /target/etc/xbps.d/noextract.conf && \
-                                  echo 'noextract=/usr/share/zsh*' >> /target/etc/xbps.d/noextract.conf && \
-                                  echo 'noextract=/usr/share/info*' >> /target/etc/xbps.d/noextract.conf"
+                                  mkdir -p /target/etc/xbps.d"
+
+# Copy the configuration file for what xbps should not extract from packages
+buildah copy "$voidbuild" confs/noextract.conf /target/etc/xbps.d/noextract.conf
 
 bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU \
                                   --repository=${REPOSITORY}/current \
@@ -48,14 +44,42 @@ then
                                       --repository=${REPOSITORY}/current \
                                       --repository=${REPOSITORY}/current/musl \
                                       ${BASEPKG} -r /target"
+
+    # Run any package specific hooks (to remove docs, configure, etc)
+    for pkg in $BASEPKG
+    do
+        [ -x "./pkghooks/$pkg.sh" ] && ARCH="$ARCH" REPOSITORY="$REPOSITORY" ./pkghooks/"$pkg".sh "$voidbuild" || \
+            die 66 "The pkghooks/$pkg.sh hook failed"
+    done
 fi
-# We don't care if the removes fail. Likely they were never insalled on this arch, or can't be
+
+# Here we add glibs-locales, for en_US, C, and POSIX only (needed for tmux and others when using glibc)
+# Only add this if the tags match the regular expression defined in $glibc_locale_tags
+if [[ "${tag}" =~  $glibc_locale_tags ]]
+then
+    # No need to do this on musl
+    if [[ ! "${ARCH}" =~ musl ]]
+    then
+        # Retains only en_US, C, and POSIX glibc-locale files/functionality
+        bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU  \
+                                          --repository=${REPOSITORY}/current \
+                                          --repository=${REPOSITORY}/current/musl \
+                                          glibc-locales -r /target && \
+                                       sed -i 's/^#en_US/en_US/' /target/etc/default/libc-locales"
+    fi
+fi
+
+bud run "$voidbuild" -- sh -c "rm -rvf /var/xbps/cache/*"
+
+# We don't care if the removes fail. Likely they were never insalled on this arch, or can't be, or base
+# packages were installed which depend on them
 buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y base-minimal -r /target" &>/dev/null || true
 for exclude in $(<excludes)
 do
     buildah run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-remove -y ${exclude} -r /target " &>/dev/null || true
 done
 
+# $striptags is defined in lib/functions.sh
 if [[ "$tag" =~ $striptags ]]
 then
     echo "Stripping Binaries" >&2
@@ -77,23 +101,6 @@ then
                                        [ -e \"/target/usr/bin/\$cmd\" ] || ln -svf /usr/bin/busybox \"/target/usr/bin/\$cmd\"
                                    done"
 fi
-
-# Here we add glibs-locales, for en_US, C, and POSIX only (needed for tmux and others when using glibc)
-if [[ "${tag}" =~  $glibc_locale_tags ]]
-then
-    # No need to do this on musl
-    if [[ ! "${ARCH}" =~ musl ]]
-    then
-        # Retains only en_US, C, and POSIX glibc-locale files/functionality
-        bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU  \
-                                          --repository=${REPOSITORY}/current \
-                                          --repository=${REPOSITORY}/current/musl \
-                                          glibc-locales -r /target && \
-                                       sed -i 's/^#en_US/en_US/' /target/etc/default/libc-locales"
-    fi
-fi
-
-bud run "$voidbuild" -- sh -c "rm -rvf /var/xbps/cache/*"
 
 # Commit void-voidbuilder
 bud config --created-by "$created_by" "$voidbuild"

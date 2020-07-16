@@ -61,6 +61,10 @@ build_image_from_builder "$tag" -b "base-minimal tmux ncurses-base" -c "/usr/bin
 tag=musl-tmux-tiny
 build_image_from_builder "$tag" -b "tmux ncurses-base" -c "/usr/bin/tmux"
 
+# Build tiny voidlinux with ruby, using musl and busybox, no coreutils. Strip all libs
+tag=musl-ruby-tiny
+build_image_from_builder "$tag" -b "ruby"
+
 # publish images _only_ if we're run in CI. This allows us to mimic the whole
 # build locally in the exact manner the CI builder does, without any publishing to registries
 if [ -n "$CI_REGISTRY_PASSWORD" ] # {{{

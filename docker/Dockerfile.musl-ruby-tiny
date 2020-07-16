@@ -1,0 +1,5 @@
+FROM registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:musl-ruby-tiny
+LABEL maintainer="bougyman <bougyman@hey.com>" description="Void Linux image with musl libc (no glibc), and ruby 2.7.0" \
+      origin="registry.gitlab.com/bougyman/voidlinux-containers/voidlinux:musl-ruby-tiny"
+ENTRYPOINT []
+CMD /bin/sh

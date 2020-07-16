@@ -9,10 +9,9 @@
 : "${ARCH:=x86_64}"
 : "${BASEPKG:=base-minimal}"
 
-container_cmd=/bin/sh
-striptags="stripped|tiny"
-glibc_locale_tags="glibc-locales|tmux"
-export striptags glibc_locale_tags
+: "${container_cmd:=/bin/sh}"
+: "${striptags:=stripped|tiny}"
+: "${glibc_locale_tags=glibc-locales|tmux}"
 
 usage() { # {{{
     cat <<-EOT
@@ -88,6 +87,7 @@ optparse() { # {{{
     done # }}}
     shift $((OPTIND-1))
     : "${tag:=${ARCH}_latest}"
+    export tag author created_by REPOSITORY ARCH BASEPKG striptags glibc_locale_tags container_cmd
 } # }}}
 # vim: set foldmethod=marker et ts=4 sts=4 sw=4 :
 
