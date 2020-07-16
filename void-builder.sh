@@ -48,8 +48,11 @@ then
     # Run any package specific hooks (to remove docs, configure, etc)
     for pkg in $BASEPKG
     do
-        [ -x "./pkghooks/$pkg.sh" ] && ARCH="$ARCH" REPOSITORY="$REPOSITORY" ./pkghooks/"$pkg".sh "$voidbuild" || \
-            die 66 "The pkghooks/$pkg.sh hook failed"
+        pkghook="./pkghooks/$pkg"
+        if [ -x "$pkghook" ]
+        then
+            "$pkghook" "$voidbuild" || die 66 "The $pkghook hook failed"
+        fi
     done
 fi
 
