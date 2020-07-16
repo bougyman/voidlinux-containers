@@ -56,22 +56,6 @@ then
     done
 fi
 
-# Here we add glibs-locales, for en_US, C, and POSIX only (needed for tmux and others when using glibc)
-# Only add this if the tags match the regular expression defined in $glibc_locale_tags
-if [[ "${tag}" =~  $glibc_locale_tags ]]
-then
-    # No need to do this on musl
-    if [[ ! "${ARCH}" =~ musl ]]
-    then
-        # Retains only en_US, C, and POSIX glibc-locale files/functionality
-        bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU  \
-                                          --repository=${REPOSITORY}/current \
-                                          --repository=${REPOSITORY}/current/musl \
-                                          glibc-locales -r /target && \
-                                       sed -i 's/^#en_US/en_US/' /target/etc/default/libc-locales"
-    fi
-fi
-
 bud run "$voidbuild" -- sh -c "rm -rvf /var/xbps/cache/*"
 
 # We don't care if the removes fail. Likely they were never insalled on this arch, or can't be, or base
@@ -103,6 +87,22 @@ then
                                    do
                                        [ -e \"/target/usr/bin/\$cmd\" ] || ln -svf /usr/bin/busybox \"/target/usr/bin/\$cmd\"
                                    done"
+fi
+
+# Here we add glibs-locales, for en_US, C, and POSIX only (needed for tmux and others when using glibc)
+# Only add this if the tags match the regular expression defined in $glibc_locale_tags
+if [[ "${tag}" =~  $glibc_locale_tags ]]
+then
+    # No need to do this on musl
+    if [[ ! "${ARCH}" =~ musl ]]
+    then
+        # Retains only en_US, C, and POSIX glibc-locale files/functionality
+        bud run "$voidbuild" -- sh -c "XBPS_ARCH=${ARCH} xbps-install -yMU  \
+                                          --repository=${REPOSITORY}/current \
+                                          --repository=${REPOSITORY}/current/musl \
+                                          glibc-locales -r /target && \
+                                       sed -i 's/^#en_US/en_US/' /target/etc/default/libc-locales"
+    fi
 fi
 
 # Commit void-voidbuilder

@@ -26,6 +26,7 @@ build_image_from_builder() { # {{{
     tag=$1
     shift
     ./void-builder.sh -t "$tag" "$@"
+    echo "Building final image for $tag" >&2
     ./voidlinux-final.sh -t "$tag" "$@"
     published_tags+=( "$tag" )
 } # }}}

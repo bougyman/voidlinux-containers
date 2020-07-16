@@ -10,8 +10,8 @@
 : "${BASEPKG:=base-minimal}"
 
 : "${container_cmd:=/bin/sh}"
-: "${striptags:=stripped|tiny}"
-: "${glibc_locale_tags:=glibc-locales|tmux}"
+: "${striptags:="stripped|tiny"}"
+: "${glibc_locale_tags:="glibc-locales|tmux"}"
 
 usage() { # {{{
     cat <<-EOT
