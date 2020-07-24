@@ -28,8 +28,8 @@ build_image() { # {{{
     tag=$1
     shift
     ./buildah.sh -t "$tag" "$@"
-    published_tags+=( "$tag" )
     scan_image "$tag" || die 99 "Trivy scan failed!"
+    published_tags+=( "$tag" )
 } # }}}
 
 build_image_from_builder() { # {{{
@@ -38,8 +38,8 @@ build_image_from_builder() { # {{{
     ./void-builder.sh -t "$tag" "$@"
     echo "Building final image for $tag" >&2
     ./voidlinux-final.sh -t "$tag" "$@"
-    published_tags+=( "$tag" )
     scan_image "$tag" || die 99 "Trivy scan failed!"
+    published_tags+=( "$tag" )
 } # }}}
 
 # Build standard minimal voidlinux with glibc (no glibc-locales)
