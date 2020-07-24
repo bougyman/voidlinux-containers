@@ -15,11 +15,21 @@ declare -a published_tags
 # Normally would not set this, but we definitely want any error to be fatal in CI
 set -e
 
+scan_image() { # {{{
+    tag=$1
+    [ -d /oci ] || mkdir -p /oci
+    oci_path=/oci/${IMAGE_NAME}_${tag}
+    buildah push "$IMAGE_NAME:$tag" "oci:/$oci_path"
+    ./trivy --exit-code 0 --severity HIGH --no-progress image --input "$oci_path"
+    ./trivy --exit-code 1 --severity CRITICAL --no-progress image --input "$oci_path"
+} # }}}
+
 build_image() { # {{{
     tag=$1
     shift
     ./buildah.sh -t "$tag" "$@"
     published_tags+=( "$tag" )
+    scan_image "$tag" || die 99 "Trivy scan failed!"
 } # }}}
 
 build_image_from_builder() { # {{{
@@ -29,6 +39,7 @@ build_image_from_builder() { # {{{
     echo "Building final image for $tag" >&2
     ./voidlinux-final.sh -t "$tag" "$@"
     published_tags+=( "$tag" )
+    scan_image "$tag" || die 99 "Trivy scan failed!"
 } # }}}
 
 # Build standard minimal voidlinux with glibc (no glibc-locales)

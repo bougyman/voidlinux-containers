@@ -3,8 +3,17 @@ image: "fedora:latest"
 build_x86_64:
   variables:
     IMAGE_NAME: "bougyman/voidlinux"
+  before_script:
+    - dnf install -y buildah git podman curl wget xz
+    - export VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+    - echo $VERSION
+    - wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+    - tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+  allow_failure: true
   script:
-    - dnf install -y buildah git podman wget xz
     - git submodule init
     - git submodule update
     - ./gitlab-build.sh
+  cache:
+    paths:
+      - .trivycache/
