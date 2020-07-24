@@ -18,7 +18,8 @@ set -e
 scan_image() { # {{{
     tag=$1
     [ -d /oci ] || mkdir -p /oci
-    oci_path=/oci/${IMAGE_NAME}_${tag}
+    shortname=$(basename "$IMAGE_NAME")
+    oci_path=/oci/${shortname}_${tag}
     buildah push "$IMAGE_NAME:$tag" "oci:/$oci_path"
     ./trivy --exit-code 0 --severity HIGH --no-progress image --input "$oci_path"
     ./trivy --exit-code 1 --severity CRITICAL --no-progress image --input "$oci_path"
